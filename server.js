@@ -27,28 +27,63 @@ if (!validation.valid) {
 
 // Load service account JSON
 // Servis hesabı JSON'unu yükle
+// Priority: 1. SERVICE_ACCOUNT_JSON (environment variable), 2. SERVICE_ACCOUNT_PATH (file path)
+// Öncelik: 1. SERVICE_ACCOUNT_JSON (ortam değişkeni), 2. SERVICE_ACCOUNT_PATH (dosya yolu)
 let serviceAccount;
 try {
-  const fs = require('fs');
-  const serviceAccountPath = config.firebase.serviceAccountPath;
-  
-  // Check if file exists first
-  // Önce dosyanın var olup olmadığını kontrol et
-  if (!fs.existsSync(serviceAccountPath)) {
-    console.error('❌ Servis hesabı dosyası bulunamadı:', serviceAccountPath);
-    console.error('   Mevcut çalışma dizini:', process.cwd());
-    console.error('   Config dosyası dizini:', __dirname);
-    console.error('   Çözümlenmiş yol:', require('path').resolve(serviceAccountPath));
-    console.error('💡 Lütfen SERVICE_ACCOUNT_PATH ortam değişkenini kontrol edin veya dosyanın doğru konumda olduğundan emin olun');
-    process.exit(1);
+  // First, try to load from environment variable (for production/cloud deployments)
+  // Önce, ortam değişkeninden yüklemeyi dene (production/bulut deployment'ları için)
+  if (process.env.SERVICE_ACCOUNT_JSON) {
+    try {
+      // Try to parse as JSON string
+      // JSON string olarak parse etmeyi dene
+      const jsonString = process.env.SERVICE_ACCOUNT_JSON;
+      
+      // Check if it's base64 encoded
+      // Base64 kodlanmış olup olmadığını kontrol et
+      let decodedJson;
+      try {
+        // Try base64 decode first
+        // Önce base64 decode dene
+        decodedJson = Buffer.from(jsonString, 'base64').toString('utf-8');
+        serviceAccount = JSON.parse(decodedJson);
+        console.log('✅ Servis hesabı yüklendi: SERVICE_ACCOUNT_JSON (base64 decoded)');
+      } catch (base64Error) {
+        // If base64 decode fails, try direct JSON parse
+        // Base64 decode başarısız olursa, direkt JSON parse dene
+        serviceAccount = JSON.parse(jsonString);
+        console.log('✅ Servis hesabı yüklendi: SERVICE_ACCOUNT_JSON (direct JSON)');
+      }
+    } catch (jsonError) {
+      console.error('❌ SERVICE_ACCOUNT_JSON parse edilemedi:', jsonError.message);
+      throw jsonError;
+    }
+  } else {
+    // Fallback to file path (for local development)
+    // Dosya yoluna yedekle (yerel geliştirme için)
+    const fs = require('fs');
+    const serviceAccountPath = config.firebase.serviceAccountPath;
+    
+    // Check if file exists first
+    // Önce dosyanın var olup olmadığını kontrol et
+    if (!fs.existsSync(serviceAccountPath)) {
+      console.error('❌ Servis hesabı dosyası bulunamadı:', serviceAccountPath);
+      console.error('   Mevcut çalışma dizini:', process.cwd());
+      console.error('   Config dosyası dizini:', __dirname);
+      console.error('   Çözümlenmiş yol:', require('path').resolve(serviceAccountPath));
+      console.error('💡 Lütfen SERVICE_ACCOUNT_JSON veya SERVICE_ACCOUNT_PATH ortam değişkenini ayarlayın');
+      console.error('💡 Production için: SERVICE_ACCOUNT_JSON="<base64_encoded_json>" veya SERVICE_ACCOUNT_JSON=\'{"type":"service_account",...}\'');
+      process.exit(1);
+    }
+    
+    serviceAccount = require(serviceAccountPath);
+    console.log('✅ Servis hesabı yüklendi:', serviceAccountPath);
   }
-  
-  serviceAccount = require(serviceAccountPath);
-  console.log('✅ Servis hesabı yüklendi:', serviceAccountPath);
 } catch (error) {
-  console.error('❌ Servis hesabı dosyası yüklenemedi:', config.firebase.serviceAccountPath);
+  console.error('❌ Servis hesabı yüklenemedi');
   console.error('   Hata:', error.message);
-  console.error('💡 Lütfen SERVICE_ACCOUNT_PATH ortam değişkenini kontrol edin veya .env dosyası oluşturun');
+  console.error('💡 Production için SERVICE_ACCOUNT_JSON ortam değişkenini ayarlayın');
+  console.error('💡 Local development için SERVICE_ACCOUNT_PATH ortam değişkenini veya dosya yolunu kontrol edin');
   process.exit(1);
 }
 

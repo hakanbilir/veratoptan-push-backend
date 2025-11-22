@@ -141,16 +141,57 @@ function validateConfig() {
     errors.push('Port must be between 1 and 65535');
   }
 
-  // Validate service account path
-  // Servis hesabı yolunu doğrula
+  // Validate service account (either JSON env var or file path)
+  // Servis hesabını doğrula (JSON env var veya dosya yolu)
   const fs = require('fs');
-  const serviceAccountPath = config.firebase.serviceAccountPath;
-  if (!fs.existsSync(serviceAccountPath)) {
-    errors.push(`Service account file not found: ${serviceAccountPath}`);
-    errors.push(`Current working directory: ${process.cwd()}`);
-    errors.push(`Config file directory: ${__dirname}`);
-    errors.push(`Resolved path: ${path.resolve(serviceAccountPath)}`);
-    errors.push(`💡 Tip: SERVICE_ACCOUNT_PATH environment variable'ını kontrol edin veya dosyanın doğru konumda olduğundan emin olun`);
+  
+  // Check if SERVICE_ACCOUNT_JSON is set (for production)
+  // SERVICE_ACCOUNT_JSON'un ayarlı olup olmadığını kontrol et (production için)
+  if (process.env.SERVICE_ACCOUNT_JSON) {
+    try {
+      // Try to parse as JSON (either direct or base64 encoded)
+      // JSON olarak parse etmeyi dene (direkt veya base64 kodlanmış)
+      const jsonString = process.env.SERVICE_ACCOUNT_JSON;
+      let parsedJson;
+      
+      try {
+        // Try base64 decode first
+        // Önce base64 decode dene
+        const decoded = Buffer.from(jsonString, 'base64').toString('utf-8');
+        parsedJson = JSON.parse(decoded);
+      } catch (base64Error) {
+        // If base64 fails, try direct JSON parse
+        // Base64 başarısız olursa, direkt JSON parse dene
+        parsedJson = JSON.parse(jsonString);
+      }
+      
+      // Validate required fields
+      // Gerekli alanları doğrula
+      if (!parsedJson.type || parsedJson.type !== 'service_account') {
+        errors.push('SERVICE_ACCOUNT_JSON must have type: "service_account"');
+      }
+      if (!parsedJson.project_id) {
+        errors.push('SERVICE_ACCOUNT_JSON must have project_id');
+      }
+      if (!parsedJson.private_key) {
+        errors.push('SERVICE_ACCOUNT_JSON must have private_key');
+      }
+    } catch (jsonError) {
+      errors.push(`SERVICE_ACCOUNT_JSON is invalid JSON: ${jsonError.message}`);
+      errors.push(`💡 Tip: SERVICE_ACCOUNT_JSON must be valid JSON string or base64 encoded JSON`);
+    }
+  } else {
+    // Fallback to file path validation (for local development)
+    // Dosya yolu doğrulamasına yedekle (yerel geliştirme için)
+    const serviceAccountPath = config.firebase.serviceAccountPath;
+    if (!fs.existsSync(serviceAccountPath)) {
+      errors.push(`Service account file not found: ${serviceAccountPath}`);
+      errors.push(`Current working directory: ${process.cwd()}`);
+      errors.push(`Config file directory: ${__dirname}`);
+      errors.push(`Resolved path: ${path.resolve(serviceAccountPath)}`);
+      errors.push(`💡 Tip: SERVICE_ACCOUNT_JSON veya SERVICE_ACCOUNT_PATH environment variable'ını ayarlayın`);
+      errors.push(`💡 Production için: SERVICE_ACCOUNT_JSON="<base64_encoded_json>" veya SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'`);
+    }
   }
 
   // Validate CORS origins
