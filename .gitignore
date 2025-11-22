@@ -36,4 +36,3 @@ dist/
 build/
 
 # Environment variables (hassas bilgiler içerir)
-.env
