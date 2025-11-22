@@ -71,8 +71,17 @@ try {
       console.error('   Mevcut çalışma dizini:', process.cwd());
       console.error('   Config dosyası dizini:', __dirname);
       console.error('   Çözümlenmiş yol:', require('path').resolve(serviceAccountPath));
-      console.error('💡 Lütfen SERVICE_ACCOUNT_JSON veya SERVICE_ACCOUNT_PATH ortam değişkenini ayarlayın');
-      console.error('💡 Production için: SERVICE_ACCOUNT_JSON="<base64_encoded_json>" veya SERVICE_ACCOUNT_JSON=\'{"type":"service_account",...}\'');
+      console.error('');
+      console.error('💡 PRODUCTION ÇÖZÜMÜ / PRODUCTION SOLUTION:');
+      console.error('💡 Fly.io için: https://fly.io/apps/veratoptan-push-backend/secrets');
+      console.error('💡 1. "New Secret" butonuna tıklayın');
+      console.error('💡 2. Key: SERVICE_ACCOUNT_JSON');
+      console.error('💡 3. Value: Base64 encoded JSON (backend/setup-fly-secrets.sh ile oluşturun)');
+      console.error('');
+      console.error('💡 VEYA CLI ile / OR via CLI:');
+      console.error('💡 cd backend && ./setup-fly-secrets.sh');
+      console.error('');
+      console.error('💡 Detaylı talimatlar: backend/FLY_IO_SETUP.md');
       process.exit(1);
     }
     
@@ -82,8 +91,17 @@ try {
 } catch (error) {
   console.error('❌ Servis hesabı yüklenemedi');
   console.error('   Hata:', error.message);
-  console.error('💡 Production için SERVICE_ACCOUNT_JSON ortam değişkenini ayarlayın');
-  console.error('💡 Local development için SERVICE_ACCOUNT_PATH ortam değişkenini veya dosya yolunu kontrol edin');
+  console.error('');
+  console.error('💡 PRODUCTION ÇÖZÜMÜ / PRODUCTION SOLUTION:');
+  console.error('💡 Fly.io için: https://fly.io/apps/veratoptan-push-backend/secrets');
+  console.error('💡 1. "New Secret" butonuna tıklayın');
+  console.error('💡 2. Key: SERVICE_ACCOUNT_JSON');
+  console.error('💡 3. Value: Base64 encoded JSON (backend/setup-fly-secrets.sh ile oluşturun)');
+  console.error('');
+  console.error('💡 VEYA CLI ile / OR via CLI:');
+  console.error('💡 cd backend && ./setup-fly-secrets.sh');
+  console.error('');
+  console.error('💡 Detaylı talimatlar: backend/FLY_IO_SETUP.md');
   process.exit(1);
 }
 

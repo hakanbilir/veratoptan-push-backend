@@ -189,8 +189,17 @@ function validateConfig() {
       errors.push(`Current working directory: ${process.cwd()}`);
       errors.push(`Config file directory: ${__dirname}`);
       errors.push(`Resolved path: ${path.resolve(serviceAccountPath)}`);
-      errors.push(`💡 Tip: SERVICE_ACCOUNT_JSON veya SERVICE_ACCOUNT_PATH environment variable'ını ayarlayın`);
-      errors.push(`💡 Production için: SERVICE_ACCOUNT_JSON="<base64_encoded_json>" veya SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'`);
+      errors.push(``);
+      errors.push(`💡 PRODUCTION ÇÖZÜMÜ / PRODUCTION SOLUTION:`);
+      errors.push(`💡 Fly.io için: https://fly.io/apps/veratoptan-push-backend/secrets`);
+      errors.push(`💡 1. "New Secret" butonuna tıklayın`);
+      errors.push(`💡 2. Key: SERVICE_ACCOUNT_JSON`);
+      errors.push(`💡 3. Value: Base64 encoded JSON (backend/setup-fly-secrets.sh script'i ile oluşturun)`);
+      errors.push(``);
+      errors.push(`💡 VEYA CLI ile / OR via CLI:`);
+      errors.push(`💡 cd backend && ./setup-fly-secrets.sh`);
+      errors.push(``);
+      errors.push(`💡 Detaylı talimatlar: backend/FLY_IO_SETUP.md`);
     }
   }
 
