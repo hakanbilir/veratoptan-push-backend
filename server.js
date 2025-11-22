@@ -159,6 +159,69 @@ app.use(cors(corsOptions)); // Enable CORS for Expo app / Expo uygulaması için
 app.use(express.json({ limit: `${config.security.maxRequestSize}mb` })); // Parse JSON bodies / JSON gövdelerini ayrıştır
 app.use(express.urlencoded({ extended: true, limit: `${config.security.maxRequestSize}mb` })); // Parse URL-encoded bodies
 
+// Security headers middleware (production)
+// Güvenlik başlıkları middleware'i (production)
+if (config.server.environment === 'production') {
+  app.use((req, res, next) => {
+    // Security headers
+    // Güvenlik başlıkları
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+  });
+}
+
+// Rate limiting middleware (simple in-memory implementation)
+// Hız sınırlama middleware'i (basit bellek içi implementasyon)
+const rateLimitStore = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute / 1 dakika
+
+app.use((req, res, next) => {
+  const clientIp = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  
+  // Clean old entries (simple cleanup)
+  // Eski girişleri temizle (basit temizlik)
+  if (rateLimitStore.size > 10000) {
+    rateLimitStore.clear();
+  }
+  
+  const clientData = rateLimitStore.get(clientIp) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
+  
+  // Reset if window expired
+  // Pencere süresi dolmuşsa sıfırla
+  if (now > clientData.resetTime) {
+    clientData.count = 0;
+    clientData.resetTime = now + RATE_LIMIT_WINDOW;
+  }
+  
+  // Check rate limit
+  // Hız limitini kontrol et
+  if (clientData.count >= config.security.rateLimit) {
+    return res.status(429).json({
+      success: false,
+      error: 'Too many requests. Please try again later.',
+      retryAfter: Math.ceil((clientData.resetTime - now) / 1000),
+    });
+  }
+  
+  // Increment count
+  // Sayacı artır
+  clientData.count++;
+  rateLimitStore.set(clientIp, clientData);
+  
+  // Add rate limit headers
+  // Hız limiti başlıklarını ekle
+  res.setHeader('X-RateLimit-Limit', config.security.rateLimit);
+  res.setHeader('X-RateLimit-Remaining', Math.max(0, config.security.rateLimit - clientData.count));
+  res.setHeader('X-RateLimit-Reset', new Date(clientData.resetTime).toISOString());
+  
+  next();
+});
+
 // Request logging middleware
 // İstek loglama middleware'i
 if (config.logging.requests) {
@@ -174,13 +237,45 @@ if (config.logging.requests) {
 
 // Health check endpoint
 // Sağlık kontrolü endpoint'i
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'Backend servisi çalışıyor',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+app.get('/health', async (req, res) => {
+  try {
+    const health = {
+      status: 'ok',
+      message: 'Backend servisi çalışıyor',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      environment: config.server.environment,
+      checks: {
+        firebase: 'ok',
+        storage: 'ok',
+      },
+    };
+    
+    // Check Firebase connection in production
+    // Production'da Firebase bağlantısını kontrol et
+    if (config.server.environment === 'production') {
+      try {
+        // Simple Firebase check (verify admin is initialized)
+        // Basit Firebase kontrolü (admin'in başlatıldığını doğrula)
+        if (!admin.apps.length) {
+          health.checks.firebase = 'error';
+          health.status = 'degraded';
+        }
+      } catch (error) {
+        health.checks.firebase = 'error';
+        health.status = 'degraded';
+      }
+    }
+    
+    const statusCode = health.status === 'ok' ? 200 : 503;
+    res.status(statusCode).json(health);
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      message: 'Health check failed',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // Root endpoint
