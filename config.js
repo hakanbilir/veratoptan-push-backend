@@ -27,8 +27,13 @@ const config = {
   firebase: {
     // Service account file path
     // Servis hesabı dosya yolu
-    serviceAccountPath: process.env.SERVICE_ACCOUNT_PATH || 
-      path.join(__dirname, '../config/secrets/veratoptan-c4d30-firebase-adminsdk-fbsvc-4f7165d9f5.json'),
+    // Resolve to absolute path for better compatibility
+    // Daha iyi uyumluluk için mutlak yola çözümle
+    serviceAccountPath: process.env.SERVICE_ACCOUNT_PATH ? 
+      (path.isAbsolute(process.env.SERVICE_ACCOUNT_PATH) ? 
+        process.env.SERVICE_ACCOUNT_PATH : 
+        path.resolve(process.cwd(), process.env.SERVICE_ACCOUNT_PATH)) :
+      path.resolve(__dirname, '../config/secrets/veratoptan-c4d30-firebase-adminsdk-fbsvc-4f7165d9f5.json'),
     
     // Project ID (optional, can be read from service account)
     // Proje ID (opsiyonel, servis hesabından okunabilir)
@@ -139,8 +144,13 @@ function validateConfig() {
   // Validate service account path
   // Servis hesabı yolunu doğrula
   const fs = require('fs');
-  if (!fs.existsSync(config.firebase.serviceAccountPath)) {
-    errors.push(`Service account file not found: ${config.firebase.serviceAccountPath}`);
+  const serviceAccountPath = config.firebase.serviceAccountPath;
+  if (!fs.existsSync(serviceAccountPath)) {
+    errors.push(`Service account file not found: ${serviceAccountPath}`);
+    errors.push(`Current working directory: ${process.cwd()}`);
+    errors.push(`Config file directory: ${__dirname}`);
+    errors.push(`Resolved path: ${path.resolve(serviceAccountPath)}`);
+    errors.push(`💡 Tip: SERVICE_ACCOUNT_PATH environment variable'ını kontrol edin veya dosyanın doğru konumda olduğundan emin olun`);
   }
 
   // Validate CORS origins

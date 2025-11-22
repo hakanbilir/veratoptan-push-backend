@@ -29,10 +29,25 @@ if (!validation.valid) {
 // Servis hesabı JSON'unu yükle
 let serviceAccount;
 try {
-  serviceAccount = require(config.firebase.serviceAccountPath);
-  console.log('✅ Servis hesabı yüklendi:', config.firebase.serviceAccountPath);
+  const fs = require('fs');
+  const serviceAccountPath = config.firebase.serviceAccountPath;
+  
+  // Check if file exists first
+  // Önce dosyanın var olup olmadığını kontrol et
+  if (!fs.existsSync(serviceAccountPath)) {
+    console.error('❌ Servis hesabı dosyası bulunamadı:', serviceAccountPath);
+    console.error('   Mevcut çalışma dizini:', process.cwd());
+    console.error('   Config dosyası dizini:', __dirname);
+    console.error('   Çözümlenmiş yol:', require('path').resolve(serviceAccountPath));
+    console.error('💡 Lütfen SERVICE_ACCOUNT_PATH ortam değişkenini kontrol edin veya dosyanın doğru konumda olduğundan emin olun');
+    process.exit(1);
+  }
+  
+  serviceAccount = require(serviceAccountPath);
+  console.log('✅ Servis hesabı yüklendi:', serviceAccountPath);
 } catch (error) {
   console.error('❌ Servis hesabı dosyası yüklenemedi:', config.firebase.serviceAccountPath);
+  console.error('   Hata:', error.message);
   console.error('💡 Lütfen SERVICE_ACCOUNT_PATH ortam değişkenini kontrol edin veya .env dosyası oluşturun');
   process.exit(1);
 }
