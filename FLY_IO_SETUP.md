@@ -97,6 +97,19 @@ curl https://veratoptan-push-backend.fly.dev/config
 ## 📝 Quick Setup Script
 ## 📝 Hızlı Kurulum Script'i
 
+**Otomatik Script (Önerilen)**
+**Automatic Script (Recommended)**
+
+```bash
+cd backend
+chmod +x setup-fly-secrets.sh
+./setup-fly-secrets.sh
+fly deploy
+```
+
+**Manuel Kurulum**
+**Manual Setup**
+
 ```bash
 cd backend
 
@@ -113,4 +126,22 @@ fly secrets set PORT="3000"
 # Deploy
 fly deploy
 ```
+
+**Fly CLI Yüklü Değilse**
+**If Fly CLI is Not Installed**
+
+1. Fly CLI'yi yükleyin:
+   ```bash
+   curl -L https://fly.io/install.sh | sh
+   ```
+
+2. Veya Fly.io Dashboard kullanın:
+   - https://fly.io/apps/veratoptan-push-backend/secrets
+   - "New Secret" butonuna tıklayın
+   - Aşağıdaki secret'ları ekleyin:
+     - `SERVICE_ACCOUNT_JSON`: Base64 encoded JSON string
+     - `FIREBASE_PROJECT_ID`: `veratoptan-c4d30`
+     - `FIREBASE_PROJECT_NUMBER`: `989392397922`
+     - `NODE_ENV`: `production`
+     - `PORT`: `3000`
 
