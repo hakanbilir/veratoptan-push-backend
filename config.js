@@ -17,7 +17,11 @@ const config = {
   // Server Configuration
   // Sunucu Yapılandırması
   server: {
-    port: parseInt(process.env.PORT || '3000', 10),
+    // Fly.io uses port 8080 by default, but can be overridden via PORT env var
+    // Fly.io varsayılan olarak 8080 portunu kullanır, ancak PORT env var ile geçersiz kılınabilir
+    port: parseInt(process.env.PORT || '8080', 10),
+    // Must listen on 0.0.0.0 for Fly.io (not 127.0.0.1)
+    // Fly.io için 0.0.0.0'da dinlemelidir (127.0.0.1 değil)
     host: process.env.HOST || '0.0.0.0',
     environment: process.env.NODE_ENV || 'development',
   },

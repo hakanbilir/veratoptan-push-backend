@@ -63,7 +63,7 @@ fly secrets set \
     FIREBASE_PROJECT_ID="veratoptan-c4d30" \
     FIREBASE_PROJECT_NUMBER="989392397922" \
     NODE_ENV="production" \
-    PORT="3000"
+    PORT="8080"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

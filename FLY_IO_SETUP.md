@@ -38,7 +38,7 @@ fly secrets set SERVICE_ACCOUNT_JSON="<base64_encoded_string>"
 fly secrets set FIREBASE_PROJECT_ID="veratoptan-c4d30"
 fly secrets set FIREBASE_PROJECT_NUMBER="989392397922"
 fly secrets set NODE_ENV="production"
-fly secrets set PORT="3000"
+fly secrets set PORT="8080"
 ```
 
 **Yöntem 2: Fly.io Dashboard**
@@ -54,7 +54,7 @@ fly secrets set PORT="3000"
 | `FIREBASE_PROJECT_ID` | `veratoptan-c4d30` |
 | `FIREBASE_PROJECT_NUMBER` | `989392397922` |
 | `NODE_ENV` | `production` |
-| `PORT` | `3000` |
+| `PORT` | `8080` |
 
 ### 3. Deploy
 ### 3. Deploy
@@ -121,7 +121,7 @@ fly secrets set SERVICE_ACCOUNT_JSON="$BASE64_JSON"
 fly secrets set FIREBASE_PROJECT_ID="veratoptan-c4d30"
 fly secrets set FIREBASE_PROJECT_NUMBER="989392397922"
 fly secrets set NODE_ENV="production"
-fly secrets set PORT="3000"
+fly secrets set PORT="8080"
 
 # Deploy
 fly deploy
@@ -143,5 +143,5 @@ fly deploy
      - `FIREBASE_PROJECT_ID`: `veratoptan-c4d30`
      - `FIREBASE_PROJECT_NUMBER`: `989392397922`
      - `NODE_ENV`: `production`
-     - `PORT`: `3000`
+     - `PORT`: `8080`
 
